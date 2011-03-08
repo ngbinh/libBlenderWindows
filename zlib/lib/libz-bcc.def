@@ -1,0 +1,71 @@
+LIBRARY     ZLIB.DLL
+
+EXPORTS
+    _dist_code                     @35  ; _dist_code
+    _length_code                   @2   ; _length_code
+    _tr_align                      @3   ; _tr_align
+    _tr_flush_block                @4   ; _tr_flush_block
+    _tr_init                       @5   ; _tr_init
+    _tr_stored_block               @6   ; _tr_stored_block
+    _tr_tally                      @7   ; _tr_tally
+    _adler32                      = adler32                             ; adler32
+    _compress                     = compress                            ; compress
+    _compress2                    = compress2                           ; compress2
+    _crc32                        = crc32                               ; crc32
+    _deflate                      = deflate                             ; deflate
+    _deflateCopy                  = deflateCopy                         ; deflateCopy
+    _deflateEnd                   = deflateEnd                          ; deflateEnd
+    _deflateInit2_                = deflateInit2_                       ; deflateInit2_
+    _deflateInit_                 = deflateInit_                        ; deflateInit_
+    _deflateParams                = deflateParams                       ; deflateParams
+    _deflateReset                 = deflateReset                        ; deflateReset
+    _deflateSetDictionary         = deflateSetDictionary                ; deflateSetDictionary
+    _deflate_copyright            = deflate_copyright                   ; deflate_copyright
+    _get_crc_table                = get_crc_table                       ; get_crc_table
+    _gzclose                      = gzclose                             ; gzclose
+    _gzdopen                      = gzdopen                             ; gzdopen
+    _gzeof                        = gzeof                               ; gzeof
+    _gzerror                      = gzerror                             ; gzerror
+    _gzflush                      = gzflush                             ; gzflush
+    _gzgetc                       = gzgetc                              ; gzgetc
+    _gzgets                       = gzgets                              ; gzgets
+    _gzopen                       = gzopen                              ; gzopen
+    _gzprintf                     = gzprintf                            ; gzprintf
+    _gzputc                       = gzputc                              ; gzputc
+    _gzputs                       = gzputs                              ; gzputs
+    _gzread                       = gzread                              ; gzread
+    _gzrewind                     = gzrewind                            ; gzrewind
+    _gzseek                       = gzseek                              ; gzseek
+    _gzsetparams                  = gzsetparams                         ; gzsetparams
+    _gztell                       = gztell                              ; gztell
+    _gzwrite                      = gzwrite                             ; gzwrite
+    _inflate                      = inflate                             ; inflate
+    _inflateEnd                   = inflateEnd                          ; inflateEnd
+    _inflateInit2_                = inflateInit2_                       ; inflateInit2_
+    _inflateInit_                 = inflateInit_                        ; inflateInit_
+    _inflateReset                 = inflateReset                        ; inflateReset
+    _inflateSetDictionary         = inflateSetDictionary                ; inflateSetDictionary
+    _inflateSync                  = inflateSync                         ; inflateSync
+    _inflateSyncPoint             = inflateSyncPoint                    ; inflateSyncPoint
+    _inflate_blocks               = inflate_blocks                      ; inflate_blocks
+    _inflate_blocks_free          = inflate_blocks_free                 ; inflate_blocks_free
+    _inflate_blocks_new           = inflate_blocks_new                  ; inflate_blocks_new
+    _inflate_blocks_reset         = inflate_blocks_reset                ; inflate_blocks_reset
+    _inflate_blocks_sync_point    = inflate_blocks_sync_point           ; inflate_blocks_sync_point
+    _inflate_codes                = inflate_codes                       ; inflate_codes
+    _inflate_codes_free           = inflate_codes_free                  ; inflate_codes_free
+    _inflate_codes_new            = inflate_codes_new                   ; inflate_codes_new
+    _inflate_copyright            = inflate_copyright                   ; inflate_copyright
+    _inflate_fast                 = inflate_fast                        ; inflate_fast
+    _inflate_flush                = inflate_flush                       ; inflate_flush
+    _inflate_mask                 = inflate_mask                        ; inflate_mask
+    _inflate_set_dictionary       = inflate_set_dictionary              ; inflate_set_dictionary
+    _inflate_trees_bits           = inflate_trees_bits                  ; inflate_trees_bits
+    _inflate_trees_dynamic        = inflate_trees_dynamic               ; inflate_trees_dynamic
+    _inflate_trees_fixed          = inflate_trees_fixed                 ; inflate_trees_fixed
+    _uncompress                   = uncompress                          ; uncompress
+    _zError                       = zError                              ; zError
+    _z_errmsg                     = z_errmsg                            ; z_errmsg
+    _zcalloc                      = zcalloc                             ; zcalloc
+    _zcfree                       = zcfree                              ; zcfree
+    _zlibVersion                  = zlibVersion                         ; zlibVersion

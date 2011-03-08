@@ -1,0 +1,9 @@
+1. checkout collada libs rev 836
+svn checkout -r 836 http://opencollada.googlecode.com/svn/trunk/ 
+
+2. Create projectfiles using CMake
+3. Open up the OPENCOLLADA solution file
+4. Set code generation to /MT[d]
+5. Build release and debug targets
+6. For each project search in its respective directory and copy them in
+   place in lib/windows/opencollada/lib. Do renaming as needed (ie. prepend Open, for debug _d, xml.lib to xml2.lib and so on).

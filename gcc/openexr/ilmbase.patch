@@ -1,0 +1,137 @@
+diff --git a/config.h b/config.h
+new file mode 100644
+index 0000000..e69de29
+diff --git a/IlmThread/IlmThread.h b/IlmThread/IlmThread.h
+index e5ca595..a7f814b 100644
+--- a/IlmThread/IlmThread.h
++++ b/IlmThread/IlmThread.h
+@@ -92,15 +92,15 @@
+ 
+ #include "IlmBaseConfig.h"
+ 
+-#if defined _WIN32 || defined _WIN64
++#if HAVE_PTHREAD
++    #include <pthread.h>
++#elif defined _WIN32 || defined _WIN64
+     #ifdef NOMINMAX
+         #undef NOMINMAX
+     #endif
+     #define NOMINMAX
+     #include <windows.h>
+     #include <process.h>
+-#elif HAVE_PTHREAD
+-    #include <pthread.h>
+ #endif
+ 
+ #if defined(OPENEXR_DLL) && !defined(ZENO_STATIC)
+@@ -135,10 +135,10 @@ class ILMTHREAD_EXPORT Thread
+     
+   private:
+ 
+-    #if defined _WIN32 || defined _WIN64
+-	HANDLE _thread;
+-    #elif HAVE_PTHREAD
++    #if HAVE_PTHREAD
+ 	pthread_t _thread;
++    #elif defined _WIN32 || defined _WIN64
++	HANDLE _thread;
+     #endif
+ 
+     void operator = (const Thread& t);	// not implemented
+diff --git a/IlmThread/IlmThreadMutex.h b/IlmThread/IlmThreadMutex.h
+index 354282b..8ee22b3 100644
+--- a/IlmThread/IlmThreadMutex.h
++++ b/IlmThread/IlmThreadMutex.h
+@@ -68,14 +68,14 @@
+ 
+ #include "IlmBaseConfig.h"
+ 
+-#if defined _WIN32 || defined _WIN64
++#if HAVE_PTHREAD
++    #include <pthread.h>
++#elif defined _WIN32 || defined _WIN64
+     #ifdef NOMINMAX
+         #undef NOMINMAX
+     #endif
+     #define NOMINMAX
+     #include <windows.h>
+-#elif HAVE_PTHREAD
+-    #include <pthread.h>
+ #endif
+ 
+ namespace IlmThread {
+@@ -95,10 +95,10 @@ class Mutex
+     void	lock () const;
+     void	unlock () const;
+ 
+-    #if defined _WIN32 || defined _WIN64
+-	mutable CRITICAL_SECTION _mutex;
+-    #elif HAVE_PTHREAD
++    #if HAVE_PTHREAD
+ 	mutable pthread_mutex_t _mutex;
++    #elif defined _WIN32 || defined _WIN64
++	mutable CRITICAL_SECTION _mutex;
+     #endif
+ 
+     void operator = (const Mutex& M);	// not implemented
+diff --git a/IlmThread/IlmThreadSemaphore.h b/IlmThread/IlmThreadSemaphore.h
+index a9ba60a..45afcaf 100644
+--- a/IlmThread/IlmThreadSemaphore.h
++++ b/IlmThread/IlmThreadSemaphore.h
+@@ -44,16 +44,16 @@
+ 
+ #include "IlmBaseConfig.h"
+ 
+-#if defined _WIN32 || defined _WIN64
++#if HAVE_PTHREAD && !HAVE_POSIX_SEMAPHORES
++    #include <pthread.h>
++#elif HAVE_PTHREAD && HAVE_POSIX_SEMAPHORES
++    #include <semaphore.h>
++#elif defined _WIN32 || defined _WIN64
+     #ifdef NOMINMAX
+         #undef NOMINMAX
+     #endif
+     #define NOMINMAX
+     #include <windows.h>
+-#elif HAVE_PTHREAD && !HAVE_POSIX_SEMAPHORES
+-    #include <pthread.h>
+-#elif HAVE_PTHREAD && HAVE_POSIX_SEMAPHORES
+-    #include <semaphore.h>
+ #endif
+ 
+ namespace IlmThread {
+@@ -73,11 +73,7 @@ class Semaphore
+ 
+   private:
+ 
+-    #if defined _WIN32 || defined _WIN64
+-
+-	mutable HANDLE _semaphore;
+-
+-    #elif HAVE_PTHREAD && !HAVE_POSIX_SEMAPHORES
++    #if HAVE_PTHREAD && !HAVE_POSIX_SEMAPHORES
+ 
+ 	//
+ 	// If the platform has Posix threads but no semapohores,
+@@ -98,6 +94,10 @@ class Semaphore
+ 
+ 	mutable sem_t _semaphore;
+ 
++    #elif defined _WIN32 || defined _WIN64
++
++	mutable HANDLE _semaphore;
++
+     #endif
+ 
+     void operator = (const Semaphore& s);	// not implemented
+diff --git a/config/IlmBaseConfig.h b/config/IlmBaseConfig.h
+index 3ab0479..98d4e55 100644
+--- a/config/IlmBaseConfig.h
++++ b/config/IlmBaseConfig.h
+@@ -12,5 +12,5 @@
+ // own semaphore implementation.
+ //
+ 
+-#define HAVE_POSIX_SEMAPHORES 1
++/* #undef HAVE_POSIX_SEMAPHORES */
+ 

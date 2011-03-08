@@ -1,0 +1,535 @@
+diff --git a/COLLADABaseUtils/SConscript b/COLLADABaseUtils/SConscript
+index d9bb25d..405dbc5 100644
+--- a/COLLADABaseUtils/SConscript
++++ b/COLLADABaseUtils/SConscript
+@@ -23,6 +23,6 @@ for srcDir in srcDirs:
+     VariantDir(variant_dir=variantDir + srcDir, src_dir=srcDir, duplicate=False)
+ 
+ if env['SHAREDLIB']:
+-    SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ else:
+-    StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+diff --git a/COLLADABaseUtils/include/COLLADABUPrerequisites.h b/COLLADABaseUtils/include/COLLADABUPrerequisites.h
+index 1dd740f..044a6ac 100644
+--- a/COLLADABaseUtils/include/COLLADABUPrerequisites.h
++++ b/COLLADABaseUtils/include/COLLADABUPrerequisites.h
+@@ -37,7 +37,7 @@
+ #  endif
+ #endif
+ #ifndef COLLADABU_HAVE_TR1_UNORDERED_MAP
+-#  if defined(COLLADABU_OS_LINUX) || defined(COLLADABU_OS_MAC)
++#  if defined(COLLADABU_OS_LINUX) || defined(COLLADABU_OS_MAC) || defined(__MINGW32__)
+ #   include <ext/hash_map>
+ #   include <ext/hash_set>
+ #  else
+diff --git a/COLLADABaseUtils/include/COLLADABUStringUtils.h b/COLLADABaseUtils/include/COLLADABUStringUtils.h
+index a7d7c60..4958112 100644
+--- a/COLLADABaseUtils/include/COLLADABUStringUtils.h
++++ b/COLLADABaseUtils/include/COLLADABUStringUtils.h
+@@ -16,6 +16,7 @@
+ 
+ #include <sstream>
+ #include <fstream>
++#include <sstream>
+ #include <map>
+ 
+ namespace COLLADABU
+@@ -156,7 +157,11 @@ namespace COLLADABU
+ 		template<class T>
+ 		static WideString toWideString ( const T & value )
+ 		{
++#ifdef __MINGW32__
++			std::basic_stringstream<wchar_t> stream;
++#else
+ 			std::wstringstream stream;
++#endif
+ 			stream << value;
+ 			return WideString(stream.str());
+ 		}
+diff --git a/COLLADABaseUtils/include/COLLADABUURI.h b/COLLADABaseUtils/include/COLLADABUURI.h
+index 7684d45..a6319d0 100644
+--- a/COLLADABaseUtils/include/COLLADABUURI.h
++++ b/COLLADABaseUtils/include/COLLADABUURI.h
+@@ -399,10 +399,20 @@ namespace COLLADABU
+ 
+     };
+ 
++}
+ 
+-	
++#if defined(__MINGW32__)
++#  include "COLLADABUhash_map.h"
+ 
++namespace __gnu_cxx
++{
++	template<> struct hash<COLLADABU::URI> {
++		size_t operator()(const COLLADABU::URI& uri) const {
++			return uri;
++		}
++	};
+ }
++#endif
+ 
+ 
+ #endif //__COLLADAFW_URI_H__
+diff --git a/COLLADABaseUtils/include/COLLADABUhash_map.h b/COLLADABaseUtils/include/COLLADABUhash_map.h
+index 7be920d..44c4965 100644
+--- a/COLLADABaseUtils/include/COLLADABUhash_map.h
++++ b/COLLADABaseUtils/include/COLLADABUhash_map.h
+@@ -39,7 +39,7 @@ namespace COLLADABU
+ 	hash_set&operator=(const hash_set&a){std::tr1::unordered_set<X>::operator=(*this,a);return this;}
+ 	};
+ #else
+-#  if defined(COLLADABU_OS_LINUX) || defined(COLLADABU_OS_MAC)
++#  if defined(COLLADABU_OS_LINUX) || defined(COLLADABU_OS_MAC) || defined(__MINGW32__)
+ 	using namespace __gnu_cxx;
+ #  else
+ 	using namespace stdext;
+@@ -49,4 +49,17 @@ namespace COLLADABU
+ 
+ } // namespace COLLADABU
+ 
++#if defined(__MINGW32__)
++#include <string>
++
++namespace __gnu_cxx
++{
++	template<> struct hash<std::string> {
++		size_t operator()(const std::string& s) const {
++			return __stl_hash_string(s.c_str());
++		}
++	};
++}
++#endif
++
+ #endif // __COLLADABU_HASH_MAP_H__
+diff --git a/COLLADABaseUtils/scripts/SConscript b/COLLADABaseUtils/scripts/SConscript
+index ff76200..ced3203 100644
+--- a/COLLADABaseUtils/scripts/SConscript
++++ b/COLLADABaseUtils/scripts/SConscript
+@@ -19,6 +19,6 @@ for srcDir in srcDirs:
+     VariantDir(variant_dir=variantDir + srcDir, src_dir=srcDir, duplicate=False)
+ 
+ if env['SHAREDLIB']:
+-    SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ else:
+-    StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+diff --git a/COLLADAFramework/SConscript b/COLLADAFramework/SConscript
+index d279ad3..31031f9 100644
+--- a/COLLADAFramework/SConscript
++++ b/COLLADAFramework/SConscript
+@@ -20,7 +20,7 @@ src = [ variantDir + str(p) for p in  Glob(srcDir + '*.cpp')]
+ VariantDir(variant_dir=variantDir + srcDir, src_dir=srcDir, duplicate=False)
+ 
+ if env['SHAREDLIB']:
+-    SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ else:
+-    StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ 
+diff --git a/COLLADAFramework/include/COLLADAFWUniqueId.h b/COLLADAFramework/include/COLLADAFWUniqueId.h
+index 15f1599..fb6a70f 100644
+--- a/COLLADAFramework/include/COLLADAFWUniqueId.h
++++ b/COLLADAFramework/include/COLLADAFWUniqueId.h
+@@ -91,4 +91,17 @@ namespace COLLADAFW
+ 
+ } // namespace COLLADAFW
+ 
++#if defined(__MINGW32__)
++#  include "COLLADABUhash_map.h"
++
++namespace __gnu_cxx
++{
++	template<> struct hash<COLLADAFW::UniqueId> {
++		size_t operator()(const COLLADAFW::UniqueId& id) const {
++			return id;
++		}
++	};
++}
++#endif
++
+ #endif // __COLLADAFW_UNIQUEID_H__
+diff --git a/COLLADAFramework/scripts/SConscript b/COLLADAFramework/scripts/SConscript
+index ffd171d..a123369 100644
+--- a/COLLADAFramework/scripts/SConscript
++++ b/COLLADAFramework/scripts/SConscript
+@@ -20,7 +20,7 @@ src = [ variantDir + str(p) for p in  Glob(srcDir + '*.cpp')]
+ VariantDir(variant_dir=variantDir + srcDir, src_dir=srcDir, duplicate=False)
+ 
+ if env['SHAREDLIB']:
+-    SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ else:
+-    StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ 
+diff --git a/COLLADASaxFrameworkLoader/SConscript b/COLLADASaxFrameworkLoader/SConscript
+index ab45e93..cfe06ae 100644
+--- a/COLLADASaxFrameworkLoader/SConscript
++++ b/COLLADASaxFrameworkLoader/SConscript
+@@ -41,6 +41,6 @@ if not env['NOVALIDATION']:
+ 
+ 
+ if env['SHAREDLIB']:
+-    SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ else:
+-    StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+diff --git a/COLLADASaxFrameworkLoader/include/COLLADASaxFWLKinematicsIntermediateData.h b/COLLADASaxFrameworkLoader/include/COLLADASaxFWLKinematicsIntermediateData.h
+index 3e22691..c076639 100644
+--- a/COLLADASaxFrameworkLoader/include/COLLADASaxFWLKinematicsIntermediateData.h
++++ b/COLLADASaxFrameworkLoader/include/COLLADASaxFWLKinematicsIntermediateData.h
+@@ -13,6 +13,7 @@
+ 
+ #include "COLLADASaxFWLPrerequisites.h"
+ #include "COLLADASaxFWLUtils.h"
++
+ #include "COLLADASaxFWLSidAddress.h"
+ #include "COLLADASaxFWLIntermediateTargetable.h"
+ 
+@@ -24,7 +25,6 @@
+ 
+ #include <list>
+ 
+-
+ namespace COLLADAFW
+ {
+ 	class Joint;
+diff --git a/COLLADASaxFrameworkLoader/include/COLLADASaxFWLPrerequisites.h b/COLLADASaxFrameworkLoader/include/COLLADASaxFWLPrerequisites.h
+index 0ab6861..53be71f 100644
+--- a/COLLADASaxFrameworkLoader/include/COLLADASaxFWLPrerequisites.h
++++ b/COLLADASaxFrameworkLoader/include/COLLADASaxFWLPrerequisites.h
+@@ -11,6 +11,26 @@
+ #ifndef __COLLADASAXFWL_PREREQUISITES_H__
+ #define __COLLADASAXFWL_PREREQUISITES_H__
+ 
++/* __gnu_cxx::hash should be changed before instantiation */
++/* (which could be done in stl includes). So keep this here */
++#if defined(__MINGW32__)
++#include "COLLADABUhash_map.h"
++
++namespace COLLADASaxFWL
++{
++	class KinematicsModel;
++}
++
++namespace __gnu_cxx
++{
++	template<> struct hash<COLLADASaxFWL::KinematicsModel*> {
++		size_t operator()(COLLADASaxFWL::KinematicsModel* const& model) const {
++			return reinterpret_cast<size_t>(model);
++		}
++	};
++}
++#endif
++
+ #include <cstddef>
+ #include <limits>
+ 
+diff --git a/COLLADAStreamWriter/SConscript b/COLLADAStreamWriter/SConscript
+index 94e1703..93aff53 100644
+--- a/COLLADAStreamWriter/SConscript
++++ b/COLLADAStreamWriter/SConscript
+@@ -20,7 +20,7 @@ src = [ variantDir + str(p) for p in  Glob(srcDir + '*.cpp')]
+ VariantDir(variant_dir=variantDir + srcDir, src_dir=srcDir, duplicate=False)
+ 
+ if env['SHAREDLIB']:
+-    SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ else:
+-    StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ 
+diff --git a/COLLADAValidator/SConscript b/COLLADAValidator/SConscript
+index de20868..9b45af9 100644
+--- a/COLLADAValidator/SConscript
++++ b/COLLADAValidator/SConscript
+@@ -64,5 +64,5 @@ if not env['SHAREDLIB']:
+   linkFlags += ['-static']
+ 
+ 
+-Program(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'], LIBS=libs, LIBPATH=libPath, LINKFLAGS=linkFlags)
++env.Program(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'], LIBS=libs, LIBPATH=libPath, LINKFLAGS=linkFlags)
+ 
+diff --git a/Externals/LibXML/SConscript b/Externals/LibXML/SConscript
+index a105947..3a9ffb1 100644
+--- a/Externals/LibXML/SConscript
++++ b/Externals/LibXML/SConscript
+@@ -26,7 +26,7 @@ src = [ variantDir + srcDir + file for file in srcFiles ]
+ VariantDir(variant_dir=variantDir + srcDir, src_dir=srcDir, duplicate=False)
+ 
+ if env['SHAREDLIB']:
+-    SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ else:
+-    StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ 
+diff --git a/Externals/MathMLSolver/SConscript b/Externals/MathMLSolver/SConscript
+index 77b2184..40d4f23 100644
+--- a/Externals/MathMLSolver/SConscript
++++ b/Externals/MathMLSolver/SConscript
+@@ -22,6 +22,6 @@ for srcDir in srcDirs:
+ 
+ 
+ if env['SHAREDLIB']:
+-    SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ else:
+-    StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+diff --git a/Externals/UTF/SConscript b/Externals/UTF/SConscript
+index 7e7e437..036752e 100644
+--- a/Externals/UTF/SConscript
++++ b/Externals/UTF/SConscript
+@@ -19,6 +19,6 @@ for srcDir in srcDirs:
+     VariantDir(variant_dir=variantDir + srcDir, src_dir=srcDir, duplicate=False)
+ 
+ if env['SHAREDLIB']:
+-    SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ else:
+-    StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+diff --git a/Externals/expat/SConscript b/Externals/expat/SConscript
+index a060d1a..6b6e7fe 100644
+--- a/Externals/expat/SConscript
++++ b/Externals/expat/SConscript
+@@ -10,6 +10,9 @@ variantDir = env['objDir']  + env['configurationBaseName'] + '/'
+ outputDir =  env['libDir']  + env['configurationBaseName'] + '/'
+ targetPath = outputDir + libName
+ 
++if not env['SHAREDLIB']:
++  env['CPPFLAGS'] += ' -DXML_STATIC '
++
+ 
+ incDirs = ['include/']
+ 
+@@ -17,7 +20,7 @@ src = [ variantDir + str(p) for p in  Glob(srcDir + '*.c')]
+ VariantDir(variant_dir=variantDir + srcDir, src_dir=srcDir, duplicate=False)
+ 
+ if env['SHAREDLIB']:
+-    SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ else:
+-    StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ 
+diff --git a/Externals/expat/lib/xmlparse.c b/Externals/expat/lib/xmlparse.c
+index a1a4422..d650060 100644
+--- a/Externals/expat/lib/xmlparse.c
++++ b/Externals/expat/lib/xmlparse.c
+@@ -8,7 +8,7 @@
+ 
+ #define XML_BUILDING_EXPAT 1
+ 
+-#ifdef COMPILED_FROM_DSP
++#if defined(COMPILED_FROM_DSP) || defined(__MINGW32__)
+ #include "winconfig.h"
+ #elif (defined(__APPLE__) || defined(OSMac_)) && (defined(__GNUC__) || defined(__xlC__) || defined(__xlc__)) || defined(__APPLE_CC__) 
+ #include "macconfig.h"
+diff --git a/Externals/expat/lib/xmlrole.c b/Externals/expat/lib/xmlrole.c
+index 6f7d3ac..347ca42 100644
+--- a/Externals/expat/lib/xmlrole.c
++++ b/Externals/expat/lib/xmlrole.c
+@@ -4,7 +4,7 @@
+ 
+ #include <stddef.h>
+ 
+-#ifdef COMPILED_FROM_DSP
++#if defined(COMPILED_FROM_DSP) || defined(__MINGW32__)
+ #include "winconfig.h"
+ #elif (defined(__APPLE__) || defined(OSMac_)) && (defined(__GNUC__) || defined(__xlC__) || defined(__xlc__)) || defined(__APPLE_CC__) 
+ #include "macconfig.h"
+diff --git a/Externals/expat/lib/xmltok.c b/Externals/expat/lib/xmltok.c
+index 3ad9c81..86b307c 100644
+--- a/Externals/expat/lib/xmltok.c
++++ b/Externals/expat/lib/xmltok.c
+@@ -4,7 +4,7 @@
+ 
+ #include <stddef.h>
+ 
+-#ifdef COMPILED_FROM_DSP
++#if defined(COMPILED_FROM_DSP) || defined(__MINGW32__)
+ #include "winconfig.h"
+ #elif (defined(__APPLE__) || defined(OSMac_)) && (defined(__GNUC__) || defined(__xlC__) || defined(__xlc__)) || defined(__APPLE_CC__) 
+ #include "macconfig.h"
+diff --git a/Externals/pcre/SConscript b/Externals/pcre/SConscript
+index 672d97c..5d09671 100644
+--- a/Externals/pcre/SConscript
++++ b/Externals/pcre/SConscript
+@@ -10,6 +10,9 @@ variantDir = env['objDir']  + env['configurationBaseName'] + '/'
+ outputDir =  env['libDir']  + env['configurationBaseName'] + '/'
+ targetPath = outputDir + libName
+ 
++if not env['SHAREDLIB']:
++  env['CPPFLAGS'] += ' -DPCRE_STATIC '
++
+ 
+ incDirs = ['include/']
+ 
+@@ -17,6 +20,6 @@ src = [ variantDir + str(p) for p in  Glob(srcDir + '*.c')]
+ VariantDir(variant_dir=variantDir + srcDir, src_dir=srcDir, duplicate=False)
+ 
+ if env['SHAREDLIB']:
+-    SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ else:
+-    StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+diff --git a/GeneratedSaxParser/SConscript b/GeneratedSaxParser/SConscript
+index 4476101..3bd1ed4 100644
+--- a/GeneratedSaxParser/SConscript
++++ b/GeneratedSaxParser/SConscript
+@@ -36,7 +36,7 @@ elif env['XMLPARSER'] == 'libxmlnative':
+ 
+ 
+ if env['SHAREDLIB']:
+-    SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ else:
+-    StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ 
+diff --git a/SConstruct b/SConstruct
+index ce1f6eb..e3fd11a 100755
+--- a/SConstruct
++++ b/SConstruct
+@@ -1,4 +1,5 @@
+ import platform   #Requiered to detect the current plattform
++import os, sys, subprocess
+ 
+ 
+ Decider('MD5-timestamp')
+@@ -23,9 +24,33 @@ vars.Add(EnumVariable('XMLPARSER',
+ , 'libxmlnative', allowed_values=('libxml', 'expat', 'libxmlnative', 'expatnative'), ignorecase=2))
+ vars.Add(BoolVariable('NOVALIDATION', 'Set to disable shema validation in sax frame work loader', 0))
+ 
+-env=Environment( variables=vars )
++class ourSpawn:
++    def ourspawn(self, sh, escape, cmd, args, env):
++        newargs = ' '.join(args[1:])
++        cmdline = cmd + " " + newargs
++        startupinfo = subprocess.STARTUPINFO()
++        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
++        proc = subprocess.Popen(cmdline, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
++            stderr=subprocess.PIPE, startupinfo=startupinfo, shell = False, env = env)
++        data, err = proc.communicate()
++        rv = proc.wait()
++        if rv:
++            print "====="
++            print err
++            print "====="
++        return rv
++
++def SetupSpawn( env ):
++    if sys.platform == 'win32':
++        buf = ourSpawn()
++        buf.ourenv = env
++        env['SPAWN'] = buf.ourspawn
++
++env=Environment( variables=vars, ENV=os.environ )
+ Help(vars.GenerateHelpText(env))
+ 
++SetupSpawn(env)
++
+ if env['RELEASE']:
+     configurationName = 'release'
+     env['CPPFLAGS'] = ' -O2 -DNDEBUG'
+@@ -87,4 +112,3 @@ might not work. A list of teste combinations will be listed here in near future.
+ """)
+ 
+ 
+-
+diff --git a/common/libBuffer/SConscript b/common/libBuffer/SConscript
+index 14cbb52..1c6e507 100644
+--- a/common/libBuffer/SConscript
++++ b/common/libBuffer/SConscript
+@@ -20,6 +20,6 @@ for srcDir in srcDirs:
+     VariantDir(variant_dir=variantDir + srcDir, src_dir=srcDir, duplicate=False)
+ 
+ if env['SHAREDLIB']:
+-    SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ else:
+-    StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+diff --git a/common/libBuffer/src/CommonFWriteBufferFlusher.cpp b/common/libBuffer/src/CommonFWriteBufferFlusher.cpp
+index 87d7836..cd68200 100644
+--- a/common/libBuffer/src/CommonFWriteBufferFlusher.cpp
++++ b/common/libBuffer/src/CommonFWriteBufferFlusher.cpp
+@@ -18,7 +18,7 @@ namespace Common
+ 	FWriteBufferFlusher::FWriteBufferFlusher( const char* fileName, size_t bufferSize, const char* mode/*="wb"*/ )
+ 		: mBufferSize(bufferSize)
+ 		, mBuffer( new char[bufferSize] )
+-#ifdef WIN32
++#if defined(WIN32) && !defined(__MINGW32__)
+ 		, mError( (int)fopen_s( &mStream, fileName, mode ) )
+ #else
+ 		, mStream(fopen( fileName, mode ))
+diff --git a/common/libftoa/SConscript b/common/libftoa/SConscript
+index 94faead..d4e8c25 100644
+--- a/common/libftoa/SConscript
++++ b/common/libftoa/SConscript
+@@ -19,6 +19,6 @@ src = [ variantDir + srcDir + file for file in srcFiles ]
+ VariantDir(variant_dir=variantDir + srcDir, src_dir=srcDir, duplicate=False)
+ 
+ if env['SHAREDLIB']:
+-    SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.SharedLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+ else:
+-    StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
++    env.StaticLibrary(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'])
+diff --git a/common/libftoa/src/Commonftoa.cpp b/common/libftoa/src/Commonftoa.cpp
+index 4f8653a..47567aa 100644
+--- a/common/libftoa/src/Commonftoa.cpp
++++ b/common/libftoa/src/Commonftoa.cpp
+@@ -20,6 +20,10 @@
+ typedef __int32 int32_t;
+ #endif
+ 
++#ifdef __MINGW32__
++#  include <stdint.h>
++#endif
++
+ namespace Common
+ {
+ 
+diff --git a/dae2ogre/SConscript b/dae2ogre/SConscript
+index 09717b7..3b324ce 100644
+--- a/dae2ogre/SConscript
++++ b/dae2ogre/SConscript
+@@ -64,5 +64,5 @@ if not env['SHAREDLIB']:
+   linkFlags += ['-static']
+ 
+ 
+-Program(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'], LIBS=libs, LIBPATH=libPath, LINKFLAGS=linkFlags)
++env.Program(target=targetPath, source=src, CPPPATH=incDirs, CCFLAGS=env['CPPFLAGS'], LIBS=libs, LIBPATH=libPath, LINKFLAGS=linkFlags)
+ 
+diff --git a/dae2ogre/src/main.cpp b/dae2ogre/src/main.cpp
+index 6e79f26..a16eb68 100644
+--- a/dae2ogre/src/main.cpp
++++ b/dae2ogre/src/main.cpp
+@@ -14,14 +14,14 @@ http://www.opensource.org/licenses/mit-license.php
+ #include <iostream>
+ #include "COLLADABUURI.h"
+ 
+-#if defined(WIN32) && !defined(NDEBUG)
++#if defined(WIN32) && !defined(NDEBUG) && !defined(__MINGW32__)
+ #	include <crtdbg.h> 
+ #endif
+ 
+ int main(int argc, char* argv[]) 
+ {
+ 
+-#if defined(WIN32) && !defined(NDEBUG)
++#if defined(WIN32) && !defined(NDEBUG) && !defined(__MINGW32__)
+ 	_CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF ); 
+ #endif
+ 

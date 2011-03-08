@@ -1,0 +1,1 @@
+This libraries and inclue files were gotten from MinGW distributive

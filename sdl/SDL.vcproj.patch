@@ -1,0 +1,41 @@
+79c79
+< 				AdditionalDependencies="winmm.lib dxguid.lib"
+---
+> 				AdditionalDependencies="winmm.lib"
+177c177
+< 				AdditionalDependencies="winmm.lib dxguid.lib"
+---
+> 				AdditionalDependencies="winmm.lib"
+324,355d323
+< 			>
+< 		</File>
+< 		<File
+< 			RelativePath="..\..\src\audio\windx5\SDL_dx5audio.c"
+< 			>
+< 		</File>
+< 		<File
+< 			RelativePath="..\..\src\audio\windx5\SDL_dx5audio.h"
+< 			>
+< 		</File>
+< 		<File
+< 			RelativePath="..\..\src\video\Windx5\SDL_dx5events.c"
+< 			>
+< 		</File>
+< 		<File
+< 			RelativePath="..\..\src\video\Windx5\SDL_dx5events_c.h"
+< 			>
+< 		</File>
+< 		<File
+< 			RelativePath="..\..\src\video\Windx5\SDL_dx5video.c"
+< 			>
+< 		</File>
+< 		<File
+< 			RelativePath="..\..\src\video\Windx5\SDL_dx5video.h"
+< 			>
+< 		</File>
+< 		<File
+< 			RelativePath="..\..\src\video\windx5\SDL_dx5yuv.c"
+< 			>
+< 		</File>
+< 		<File
+< 			RelativePath="..\..\src\video\windx5\SDL_dx5yuv_c.h"
